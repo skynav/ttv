@@ -43,4 +43,27 @@ public class Characters {
         return ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z'));
     }
 
+
+    public static String charToNCRef(int c) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0, nDigits = (c > 0xFFFF) ? 6 : 4; i < nDigits; i++, c >>= 4) {
+            int d = c & 0xF;
+            char hd;
+            if (d < 10) {
+                hd = (char) ((int) '0' + d);
+            } else {
+                hd = (char) ((int) 'A' + (d - 10));
+            }
+            sb.append(hd);
+        }
+        return "&#x" + sb.reverse() + ";";
+    }
+
+    public static String maybeEscapeAsNCRef(int c) {
+        if ((c >= 32) && (c < 127))
+            return Character.toString((char)c);
+        else
+            return charToNCRef(c);
+    }
+
 }

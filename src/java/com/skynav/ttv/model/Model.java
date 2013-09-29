@@ -48,48 +48,113 @@ public interface Model {
     String getName();
 
     /**
-     * Obtain schema resource name (path), which should be
+     * Obtain TT schema resource names (paths), each of which should be
      * an acceptable argument to pass to ClassLoader.getResource().
-     * @return schema resource name (path)
+     * @return schema resource names (paths)
      */
-    String getSchemaResourceName();
+    String[] getTTSchemaResourceNames();
 
     /**
-     * Obtain primary schema (target) namespace URI. 
-     * @return namespace URI
+     * Obtain model's schema resource names (paths), each of which should be
+     * an acceptable argument to pass to ClassLoader.getResource().
+     * @return schema resource names (paths)
      */
-    URI getNamespaceUri();
+    String[] getSchemaResourceNames();
 
     /**
-     * Obtain profile namespace URI. 
+     * Obtain TT schema (target) namespace URIs.
+     * @return namespace URIs
+     */
+    URI[] getTTNamespaceURIs();
+
+    /**
+     * Obtain model's schema (target) namespace URIs.
+     * @return namespace URIs
+     */
+    URI[] getNamespaceURIs();
+
+    /**
+     * Determine if a namespace URI matches one of this model's namespace URIs.
+     * @return true if match
+     */
+    boolean isNamespace(String nsUri);
+
+    /**
+     * Determine if a name is bound to a global attribute type.
+     * @param name of attribute
+     * @return true if bound
+     */
+    boolean isGlobalAttribute(QName name);
+
+    /**
+     * Determine if a global attribute is permitted on element.
+     * @param attributeName name of attribute
+     * @param elementName name of attribute
+     * @return true if bound
+     */
+    boolean isGlobalAttributePermitted(QName attributeName, QName elementName);
+
+    /**
+     * Determine if a name is bound to a element type.
+     * @param name of element
+     * @return true if bound
+     */
+    boolean isElement(QName name);
+
+    /**
+     * Obtain TT profile namespace URI. 
+     * @return TT profile namespace URI
+     */
+    URI getTTProfileNamespaceUri();
+
+    /**
+     * Obtain model's profile namespace URI. 
      * @return profile namespace URI
      */
     URI getProfileNamespaceUri();
 
     /**
-     * Obtain feature namespace URI. 
+     * Obtain TT feature namespace URI. 
+     * @return feature namespace URI
+     */
+    URI getTTFeatureNamespaceUri();
+
+    /**
+     * Obtain model's feature namespace URI. 
      * @return feature namespace URI
      */
     URI getFeatureNamespaceUri();
 
     /**
-     * Obtain extension namespace URI. 
+     * Obtain TT extension namespace URI. 
+     * @return extension namespace URI
+     */
+    URI getTTExtensionNamespaceUri();
+
+    /**
+     * Obtain model's extension namespace URI. 
      * @return extension namespace URI
      */
     URI getExtensionNamespaceUri();
 
     /**
-     * Obtain set of standard profiles.
-     * @return standard profiles
+     * Obtain set of profiles designators.
+     * @return model's profile designators 
      */
-    Set<URI> getStandardProfileURIs();
+    Set<URI> getProfileDesignators();
 
     /**
      * Obtain specifiction of a standard profile.
      * @param uri specifying profile designator
      * @return standard profile specification
      */
-    Profile.Specification getStandardProfileSpecification(URI uri);
+    Profile.Specification getProfileSpecification(URI uri);
+
+    /**
+     * Obtain model's standard designations.
+     * @return standard designations
+     */
+    Profile.StandardDesignations getStandardDesignations();
 
     /**
      * Determine if feature designation is a standard designation.
@@ -159,6 +224,18 @@ public interface Model {
      * ancestor element type
      */
     List<List<QName>> getIdReferencePermissibleAncestors(QName attributeName);
+
+    /**
+     * Obtain list of lists of qualified names of permissible ancestors
+     * of specific element type, where the order of lists contained in the outer list
+     * is not significant, and the order of qualified names contained in inner lists
+     * is from most immediate ancestor to least immediate ancestor, where least immediate
+     * ancestor need not be the root.
+     * @param attributeName name of referring attribute
+     * @return a list of lists of qualified names or null if no constraint on target
+     * ancestor element type
+     */
+    List<List<QName>> getElementPermissibleAncestors(QName elementName);
 
     /**
      * Obtain semantics verifier for model.

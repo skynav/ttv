@@ -49,7 +49,7 @@
 <property name="ttv.version.major" value="1"/>
 <property name="ttv.version.minor" value="0"/>
 <property name="ttv.version.micro" value="0"/>
-<property name="ttv.version.suffix" value="dev"/>
+<property name="ttv.version.suffix" value="a3"/>
 <property name="ttv.version" value="${ttv.version.major}.${ttv.version.minor}.${ttv.version.micro}${ttv.version.suffix}"/>
 <property name="ttv.vendor" value="Skynav, Inc."/>
 <property name="ttv.release.target" value="${release.dir}/ttv-bin-${ttv.version}.jar"/>
@@ -122,18 +122,44 @@
 </macrodef>
 
 <!-- WARNING - THIS TARGET OVERWRITES EXISTING BINDING SOURCES!! -->
-<target name="create-xsd-bindings-ttml10">
+<target name="create-xsd-bindings-ttml1">
   <exec executable="xjc" dir="${build.dir}">
     <arg value="-b"/>
-    <arg value="${bindings.dir}/xsd/ttml10-bindings.xjb"/>
+    <arg value="${bindings.dir}/xsd/ttml1-bindings.xjb"/>
     <arg value="-d"/>
     <arg value="${generated.dir}"/>
-    <arg value="${schemas.dir}/xsd/ttml10/ttaf1-dfxp.xsd"/>
+    <arg value="${schemas.dir}/xsd/ttml1/ttml1.xsd"/>
   </exec>
 </target>
 
 <!-- WARNING - THIS TARGET OVERWRITES EXISTING BINDING SOURCES!! -->
-<target name="create-xsd-bindings" depends="create-xsd-bindings-ttml10"/>
+<target name="create-xsd-bindings-smpte-2010">
+  <exec executable="xjc" dir="${build.dir}">
+    <arg value="-b"/>
+    <arg value="${bindings.dir}/xsd/smpte-bindings-2010.xjb"/>
+    <arg value="-d"/>
+    <arg value="${generated.dir}"/>
+    <arg value="${schemas.dir}/xsd/smpte/2010/smpte-tt.xsd"/>
+    <arg value="${schemas.dir}/xsd/smpte/2010/smpte-tt-608.xsd"/>
+  </exec>
+</target>
+
+<target name="create-xsd-bindings-smpte-2013">
+  <exec executable="xjc" dir="${build.dir}">
+    <arg value="-b"/>
+    <arg value="${bindings.dir}/xsd/smpte-bindings-2013.xjb"/>
+    <arg value="-d"/>
+    <arg value="${generated.dir}"/>
+    <arg value="${schemas.dir}/xsd/smpte/2013/smpte-tt.xsd"/>
+    <arg value="${schemas.dir}/xsd/smpte/2013/smpte-tt-608.xsd"/>
+    <arg value="${schemas.dir}/xsd/smpte/2013/smpte-tt-708.xsd"/>
+  </exec>
+</target>
+
+<target name="create-xsd-bindings-smpte" depends="create-xsd-bindings-smpte-2010,create-xsd-bindings-smpte-2013"/>
+
+<!-- WARNING - THIS TARGET OVERWRITES EXISTING BINDING SOURCES!! -->
+<target name="create-xsd-bindings" depends="create-xsd-bindings-ttml1, create-xsd-bindings-smpte"/>
 
 <!-- WARNING - THIS TARGET OVERWRITES EXISTING BINDING SOURCES!! -->
 <target name="generate-code" depends="create-xsd-bindings"/>
@@ -204,10 +230,10 @@
   <junit-run testsuite="com.skynav.xml.helpers.HelpersTestSuite" outfile="TEST-xml-helpers"/>
 </target>
 
-<target name="test-ttml10" description="Run TTML10 tests">
-  <junit-run testsuite="com.skynav.ttv.ttml10.SchemaTestSuite" outfile="TEST-ttml10-schema"/>
-  <junit-run testsuite="com.skynav.ttv.ttml10.ModelTestSuite" outfile="TEST-ttml10-model"/>
-  <junit-run testsuite="com.skynav.ttv.ttml10.UnmarshalTestSuite" outfile="TEST-ttml10-unmarshal"/>
+<target name="test-ttml1" description="Run TTML1 tests">
+  <junit-run testsuite="com.skynav.ttv.ttml1.SchemaTestSuite" outfile="TEST-ttml1-schema"/>
+  <junit-run testsuite="com.skynav.ttv.ttml1.ModelTestSuite" outfile="TEST-ttml1-model"/>
+  <junit-run testsuite="com.skynav.ttv.ttml1.UnmarshalTestSuite" outfile="TEST-ttml1-unmarshal"/>
 </target>
 
 <target name="test-verifier" description="Run TTV verification test suite">
@@ -216,7 +242,7 @@
 
 <target name="test-apps" description="Run TTV application tests" depends="test-verifier"/>
 
-<target name="test" description="Run all TTV test suites" depends="compile-tests, test-xml, test-ttml10, test-apps"/>
+<target name="test" description="Run all TTV test suites" depends="compile-tests, test-xml, test-ttml1, test-apps"/>
 
 <target name="release-dist">
   <copy file="${ttv.target}" tofile="${release.dir}/ttv-bin-${ttv.version}.jar"/>
@@ -302,39 +328,57 @@
 <!-- WARNING - THIS TARGET OVERWRITES EXISTING BINDING SOURCES!! -->
 <target name="clean-all-test" depends="clean-all,generate-code,build,test"/>
 
-<target name="run-valid" description="Run verifier with valid TTML10 input test files">
-  <java jar="${ttv.target}" fork="true" failonerror="true">
-    <jvmarg value="-ea"/>
-    <arg value="-v"/>
-    <arg value="--hide-warnings"/>
-    <arg value="--warn-on"/>
-    <arg value="all"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-simple.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-elements.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-metadata.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-parameters.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-profiles.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-styles.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-all-timing.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-agent-idref-duplicate.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-agent-missing-actor.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-agent-missing-name.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-extensions-base-other-namespace.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-extension-non-standard.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-font-family-quoted-generic.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-foreign.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-foreign-metadata.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-opacity-out-of-range.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-origin-negative.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-profile-attribute-ignored.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-profile-attribute-non-standard.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-profile-missing.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-profile-non-standard.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-role-duplicate.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-role-extension.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-style-idref-duplicate-with-intervening.xml"/>
-    <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml10-valid-style-idref-duplicate-without-intervening.xml"/>
-  </java>
+<macrodef name="run-valid">
+  <attribute name="verbose"/>
+  <sequential>
+    <java jar="${ttv.target}" fork="true" failonerror="true">
+      <jvmarg value="-ea"/>
+      <arg value="@{verbose}"/>
+      <arg value="--hide-warnings"/>
+      <arg value="--warn-on"/>
+      <arg value="all"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-simple.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-elements.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-metadata.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-parameters.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-profiles.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-styles.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-all-timing.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-agent-idref-duplicate.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-agent-missing-actor.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-agent-missing-name.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-extensions-base-other-namespace.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-extension-non-standard.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-font-family-quoted-generic.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-foreign.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-foreign-metadata.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-opacity-out-of-range.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-origin-negative.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-profile-attribute-ignored.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-profile-attribute-non-standard.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-profile-missing.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-profile-non-standard.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-role-duplicate.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-role-extension.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-style-idref-duplicate-with-intervening.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/ttml1-valid-style-idref-duplicate-without-intervening.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2010-valid.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2010-valid-all-styles.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2010-valid-background-image-external.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2013-valid-with-608.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2013-valid-with-708.xml"/>
+      <arg value="${test.resources.source.dir}/com/skynav/ttv/app/st2052-2013-valid-all-styles.xml"/>
+    </java>
+  </sequential>
+</macrodef>
+
+<target name="run-valid" description="Run verifier with valid input test files">
+  <run-valid verbose="--no-verbose"/>
 </target>
+
+<target name="run-valid-verbose" description="Run verifier with valid input test files, with verbose output.">
+  <run-valid verbose="--verbose"/>
+</target>
+
 
 </project>

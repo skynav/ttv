@@ -2,7 +2,7 @@
 
 Timed Text Markup Language (TTML) Verification Tools
 
-The `ttv` tool is used to verify the contents of a [TTML](http://www.w3.org/TR/ttaf1-dfxp/) document represented using XML as a concrete encoding, and where this document is verified against a specific verification *model*.
+The `ttv` tool is used to verify the contents of a [TTML](http://www.w3.org/TR/ttml1/) document represented using XML as a concrete encoding, and where this document is verified against a specific verification *model*.
 
 Verification is performed in four phases in the following order:
 
@@ -72,7 +72,7 @@ A number of additional semantic constraints are tested in the fourth phase:
  * Error if xml:base on ttp:extensions is not absolute. (6.1.4)
  * Warn if xml:base on ttp:extensions is specified, is not TT Extension Namespace, and `references-other-extension-namespace` warning is enabled. (6.1.4)
  * Error if absolutized extension designation doesn't conform to extension-designation defined in E.1. (6.1.5)
- * Error if absolutized extension designation is in TT Extension Namespace but is not a known standard designation. (6.1.5)
+ * Error if absolutized extension designation is not a known standard designation. (6.1.5)
  * Warn if absolutized extension designation is in Other Extension Namespace and `references-non-standard-extension` warning is enabled. (6.1.5)
  * Warn if ttp:profile attribute specifies a non-standard profile designation and `references-non-standard-profile` warning is enabled. (6.2.8)
  * Error if style attribute IDREF does not reference a style element. (8.2.1)
@@ -114,6 +114,26 @@ A number of additional semantic constraints are tested in the fourth phase:
  * Error if unknown attribute in TT StyleMetadata Namespace specified on any element.
  * Error if TT Style Namespace attribute specified on element where it is not explicitly permitted.
 
+If one of the **smpte** verification models applies, a number of additional semantic constraints are tested in the fourth phase:
+
+ * Error if smpte:backgroundImage specifies a local fragment that does not reference a smpte:image element.
+ * Warn if smpte:backgroundImage references a non-local image and `references-external-image` warning is enabled.
+ * Error if smpte:backgroundImageHorizontal attribute specifies value that is not `left|center|right` or doesn't conform to the TTML \<length\> syntax.
+ * Error if smpte:backgroundImageHorizontal attribute uses a negative length value.
+ * Error if smpte:backgroundImageVertical attribute specifies value that is not `top|center|bottom` or doesn't conform to the TTML \<length\> syntax.
+ * Error if smpte:backgroundImageVertical attribute uses a negative length value.
+ * Error if smpte:data element's immediate ancestor is not tt:metadata.
+ * Error if smpte:data element's content does not conform to Base64 encoding, ignoring XML whitespace.
+ * Error if smpte:data element's datatype attribute is not a standard datatype or private ('x-' prefixed) datatype.
+ * Error if smpte:image element's immediate ancestor is not tt:metadata.
+ * Error if smpte:image element's content does not conform to Base64 encoding, ignoring XML whitespace.
+ * Error if smpte:information element's immediate ancestors are not tt:metadata and tt:head.
+ * Error if smpte:information element appears more than once in document.
+ * Error if unknown element in some SMPTE-TT Namespace is specified.
+ * Error if unknown attribute in some SMPTE-TT Namespace is specified on any element.
+ * Error if SMPTE-TT Namespace attribute specified on element where it is not explicitly permitted.
+ * Error if SMPTE attribute is empty, all whitespace, or whitespace padded (unless explicitly permitted).
+
 ## Verification Model
 
 A verification *model* includes the following information:
@@ -139,19 +159,22 @@ Using the `clean-build` target will first clean (delete) previously built classe
 
 The full set of (public) `ant` targets can be listed by using `ant -p`, which presently outputs the following:
 
-    Main targets:
+<pre>
+Main targets:
 
-    build            Build TTV
-    clean-build      Clean and build TTV
-    clean-test       Clean, build, and test TTV
-    run-valid        Run verifier with valid TTML10 input files
-    test             Run all TTV test suites
-    test-apps        Run TTV application tests
-    test-ttml10      Run TTML10 tests
-    test-verifier    Run TTV verification test suite
-    test-xml         Run XML tests
+build              Build TTV
+clean-build        Clean and build TTV
+clean-test         Clean, build, and test TTV
+run-valid          Run verifier with valid input test files
+run-valid-verbose  Run verifier with valid input test files, with verbose output.
+test               Run all TTV test suites
+test-apps          Run TTV application tests
+test-ttml1         Run TTML1 tests
+test-verifier      Run TTV verification test suite
+test-xml           Run XML tests
 
-    Default target: clean-test
+Default target: clean-test
+</pre>
 
 ## Running
 
@@ -166,7 +189,7 @@ Usage information can be obtained by using:
 At present, this will output the following:
 
 <pre>
-Timed Text Verifier (TTV) [0.0.0dev] Copyright 2013 Skynav, Inc.
+Timed Text Verifier (TTV) [1.0.0dev] Copyright 2013 Skynav, Inc.
 Usage: java -jar ttv.jar [options] URL*
   Short Options:
     -d                         - see --debug
@@ -179,15 +202,18 @@ Usage: java -jar ttv.jar [options] URL*
     --disable-warnings         - disable warnings (both hide and don't count warnings)
     --expect-errors COUNT      - expect count errors or -1 meaning unspecified expectation (default: -1)
     --expect-warnings COUNT    - expect count warnings or -1 meaning unspecified expectation (default: -1)
+    --extension-schema NS URL  - add schema for namespace NS at location URL to grammar pool (may be specified multiple times)
     --external-extent EXTENT   - specify extent for document processing context
     --external-frame-rate RATE - specify frame rate for document processing context
     --help                     - show usage help
     --hide-warnings            - hide warnings (but count them)
-    --model NAME               - specify model name (default: ttml10)
+    --model NAME               - specify model name (default: ttml1)
     --no-warn-on TOKEN         - disable warning specified by warning TOKEN, where multiple instances of this option may be specified
+    --no-verbose               - disable verbose output (resets verbosity level to 0)
     --quiet                    - don't show banner
     --show-models              - show built-in verification models (use with --verbose to show more details)
     --show-repository          - show source code repository information
+    --show-validator           - show platform validator information
     --show-warning-tokens      - show warning tokens (use with --verbose to show more details)
     --verbose                  - enable verbose output (may be specified multiple times to increase verbosity level)
     --treat-foreign-as TOKEN   - specify treatment for foreign namespace vocabulary, where TOKEN is error|warning|info|allow (default: warning)
@@ -200,7 +226,24 @@ Usage: java -jar ttv.jar [options] URL*
 
 As a convenience, if a URL argument takes a relative form, then `ttv` attempts to resolve it against the current working directory.
 
-Run `ttv` with the `--show-models` option to determine which verification models are supported, and which is the default model.
+Run `ttv` with the `--show-models` option to determine which verification models are supported, and which is the default model. If the `-v` option is added, this will additionally show the built-in schemas used by each model, as demonstrated by the following console log:
+
+<pre>
+$ java -jar bld/artifacts/ttv.jar -v --show-models
+Timed Text Verifier (TTV) [1.0.0dev] Copyright 2013 Skynav, Inc.
+Verification Models:
+  st2052-2010
+    XSD: xsd/ttml1/ttml1.xsd
+    XSD: xsd/smpte/2010/smpte-tt.xsd
+    XSD: xsd/smpte/2010/smpte-tt-608.xsd
+  st2052-2013
+    XSD: xsd/ttml1/ttml1.xsd
+    XSD: xsd/smpte/2013/smpte-tt.xsd
+    XSD: xsd/smpte/2013/smpte-tt-608.xsd
+    XSD: xsd/smpte/2013/smpte-tt-708.xsd
+  ttml1 (default)
+    XSD: xsd/ttml1/ttml1.xsd
+</pre>
 
 ## Testing
 
@@ -216,9 +259,9 @@ In addition, the `run-valid` target will use the command line (not Junit) invoca
 
 <pre>
     $ java -version
-    java version "1.6.0_45"
-    Java(TM) SE Runtime Environment (build 1.6.0_45-b06-451-11M4406)
-    Java HotSpot(TM) 64-Bit Server VM (build 20.45-b01-451, mixed mode)
+    java version "1.6.0_51"
+    Java(TM) SE Runtime Environment (build 1.6.0_51-b11-457-11M4509)
+    Java HotSpot(TM) 64-Bit Server VM (build 20.51-b01-457, mixed mode)
 
     $ ant -version
     Apache Ant(TM) version 1.8.2 compiled on June 20 2012
@@ -234,3 +277,4 @@ In addition, the `run-valid` target will use the command line (not Junit) invoca
 ## Issues
 
 See [Open Issues](http://github.com/skynav/ttv/issues?state=open) for current known bugs, feature requests (enhancements), etc.
+
